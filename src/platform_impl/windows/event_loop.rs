@@ -24,6 +24,7 @@ use windows_sys::Win32::System::Threading::{
     CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, INFINITE, TIMER_ALL_ACCESS,
 };
 use windows_sys::Win32::UI::Controls::{HOVER_DEFAULT, WM_MOUSELEAVE};
+use windows_sys::Win32::UI::HiDpi::GetDpiForSystem;
 use windows_sys::Win32::UI::Input::Ime::{GCS_COMPSTR, GCS_RESULTSTR, ISC_SHOWUICOMPOSITIONWINDOW};
 use windows_sys::Win32::UI::Input::KeyboardAndMouse::{
     ReleaseCapture, SetCapture, TrackMouseEvent, TME_LEAVE, TRACKMOUSEEVENT,
@@ -1108,10 +1109,14 @@ unsafe fn public_window_callback_inner(
                 // Unfortunately this results in janky resize behavior, where the compositor is
                 // ahead of the window surface. Currently, there seems no option to achieve this
                 // with the Windows API.
+                let dpi = unsafe { GetDpiForSystem() };
+                let border_physical_pixels = 2;
+                let border_size = (border_physical_pixels as f32 * dpi as f32 / 96.0).round() as i32;  
+                println!("border_size: {}", border_size);
 
-                params.rgrc[0].bottom -= 2;
-                params.rgrc[0].left += 2;
-                params.rgrc[0].right -= 2;
+                params.rgrc[0].bottom -= border_size;  
+                params.rgrc[0].left += border_size;  
+                params.rgrc[0].right -= border_size;  
             }
 
             result = ProcResult::Value(0);
